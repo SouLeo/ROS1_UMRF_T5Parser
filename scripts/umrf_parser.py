@@ -5,32 +5,51 @@ from std_msgs.msg import String
 import torch
 import transformers
 
-parsing_requests = []
-pub = rospy.Publisher('umrf_parses', String, queue_size=10)
+device = None
+path = os.getcwd()
+model_path = path + '/umrf_t5_small_fine_tuned'
+tokenizer_path = path + '/saved_tokenizer'
+
+model = transformers.T5ForConditionalGeneration.from_pretrained(model_path)
+model.eval()
+tokenizer = transformers.T5Tokenizer.from_pretrained(tokenizer_path)
+
+pub = rospy.Publisher('umrf_parses_output', String, queue_size=10)
 
 def callback(data):
     rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
-    parsing_requests.append(data.data)
+    
+    encoded_input = tokenizer(data.data, max_length=512, padding='longest', truncation=True, return_tensors='pt').data
+    
+    input_ids = encoded_input['input_ids'].to(device)
+    print(input_ids)
+
+    umrf_parse = model.generate(input_ids, max_length=1000)
+    
+    print(umrf_parse[0])
+    pred = tokenizer.decode(umrf_parse[0])
+    
+    pub.publish(pred)
 
 
-def listener(model):
+
+def listener():
     rospy.init_node('umrf_parser_node', anonymous=True)
 
     rospy.Subscriber("umrf_parses", String, callback)
 
-
-    if parsing_requests:
-        umrf_parse = model.generate(parsing_requests.pop(0), max_length=1000)
-        pub.publish(umrf_parse)
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()
 
 
 if __name__ == '__main__':
-    local_path = '/home/selmawanna/PycharmProjects/T5LM/saved_model'
-    model = transformers.AutoModel.from_pretrained(local_path)
+    if torch.cuda.is_available():
+        device = torch.device('cuda')
+        print('gpu found')
+    else:
+        device = torch.device('cpu')
+        print('using cpu')
     try:
-        listener(model)
+        listener()
     except rospy.ROSInterruptException:
         pass
-
