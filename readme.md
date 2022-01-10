@@ -7,7 +7,8 @@ converting natural language commands -> The Unified Meaning Representation (UMRF
 # How to Install
 1) clone this repository into your <code> ~/catkin_ws/src </code>
 2) Download the model and tokenizer from slwanna@utexas.edu 's google drive (please contact author of this git repo for access)
-3) Extract the zip in your download then place the <code>saved_model</code> and <code>saved_tokenizer</code> at the same directory level as the <code>umrf_parser.py</code>
+3) from <code> ~/catkin_ws/src/ROS1_UMRF_T5Parser/scripts</code> run <code>pip install -r requirements.txt</code> 
+4) Extract the zip in your download then place the <code>saved_model</code> and <code>saved_tokenizer</code> at the same directory level as the <code>umrf_parser.py</code>
 
 # How to Use
 1) No <code>.launch</code> is included
