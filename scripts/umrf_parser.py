@@ -23,13 +23,14 @@ def callback(data):
     
     encoded_input = tokenizer(inputs, max_length=512, padding='longest', truncation=True, return_tensors='pt').data
     input_ids = encoded_input['input_ids'].to(device)
- 
 
-    umrf_parse = model.generate(input_ids, max_length=1000).squeeze()
-    
+    umrf_parse = model.generate(input_ids, max_length=200).squeeze()
     pred = tokenizer.decode(umrf_parse, skip_special_tokens=True)
-    
-    pub.publish(pred)
+    prepend_str = '{ "umrf_actions": '
+    postpend_str = '}'
+    output = prepend_str + pred + postpend_str
+    print(output) 
+    pub.publish(output)
 
 
 
